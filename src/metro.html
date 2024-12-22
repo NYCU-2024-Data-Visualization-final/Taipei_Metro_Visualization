@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>台北捷運路線圖</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <link rel="stylesheet" href="index.css">
 </head>
+
 <body>
     <div id="visualization"></div>
     <div class="station-info" id="station-info"></div>
-
+    <button id="test">132123</button>
     <script>
         // 定義路線顏色
         const lineColors = {
@@ -23,7 +25,7 @@
         function createConnections(stations) {
             const connections = [];
             const lineStations = {};
-            
+
             // 按路線分組站點
             stations.forEach(station => {
                 station.lines.forEach((line, index) => {
@@ -38,14 +40,14 @@
                     });
                 });
             });
-            
+
             // 為每條路線建立連接
             Object.entries(lineStations).forEach(([line, stationsWithInfo]) => {
                 // 找出這條線路中所有獨特的分支號碼
                 const branches = [...new Set(stationsWithInfo
                     .map(s => s.branch)
                     .filter(b => b !== null))];
-                
+
                 if (branches.length === 0) {
                     // 沒有分支的路線，直接按order連接
                     stationsWithInfo.sort((a, b) => a.order - b.order);
@@ -60,18 +62,18 @@
                     // 有分支的路線
                     branches.forEach(branchNum => {
                         // 獲取該分支的所有站點
-                        const branchStations = stationsWithInfo.filter(s => 
+                        const branchStations = stationsWithInfo.filter(s =>
                             s.branch === branchNum || s.branch === null
                         );
-                        
+
                         // 按order排序
                         branchStations.sort((a, b) => a.order - b.order);
-                        
+
                         // 建立連接
                         for (let i = 0; i < branchStations.length - 1; i++) {
                             const current = branchStations[i];
                             const next = branchStations[i + 1];
-                            
+
                             // 檢查是否可以連接：
                             // 1. 兩站至少有一站沒有branch(代表是共用站)
                             // 2. 或者兩站的branch相同
@@ -89,14 +91,14 @@
                     });
                 }
             });
-            
+
             return connections;
         }
 
         async function initVisualization() {
             const stations = await fetch('../data/mrt_stations.json').then(res => res.json());
             const connections = createConnections(stations);
-            
+
             const width = window.innerWidth;
             const height = window.innerHeight;
             const margin_top = -30;
@@ -110,34 +112,48 @@
                 // 主要連接線
                 let my = connection.source.coordinates[0] - connection.target.coordinates[0];
                 let mx = -(connection.source.coordinates[1] - connection.target.coordinates[1]);
-                let r = Math.sqrt(my*my + mx*mx);
-                let dx = mx * 3/r;
-                let dy = my * 3/r;
+                let r = Math.sqrt(my * my + mx * mx);
+                let dx = mx * 3 / r;
+                let dy = my * 3 / r;
 
 
                 svg.append("line")
-                    .attr("class", "connection")
-                    .attr("id", connection.source.name+'站'+connection.target.name+"站")
+                    .attr("class", "connection-in")
+                    .attr("id", connection.source.name + '站' + connection.target.name + "站" + "進站")
                     .attr("x1", connection.source.coordinates[0] * width + dx)
-                    .attr("y1", connection.source.coordinates[1] * height+margin_top + dy)
+                    .attr("y1", connection.source.coordinates[1] * height + margin_top + dy)
                     .attr("x2", connection.target.coordinates[0] * width + dx)
-                    .attr("y2", connection.target.coordinates[1] * height+margin_top+dy)
+                    .attr("y2", connection.target.coordinates[1] * height + margin_top + dy)
                     .style("stroke", lineColors[connection.line])
                     .style("stroke-width", 3)
-                    .on("mouseover", function() {
+                    .on("mouseover", function () {
                         showConnectionInfo(connection);
                     })
                     .on("mouseout", hideConnectionInfo);
                 svg.append("line")
-                    .attr("class", "connection")
-                    .attr("id", connection.target.name+'站'+connection.source.name+"站")
+                    .attr("class", "connection-out")
+                    .attr("id", connection.target.name + '站' + connection.source.name + "站" + "出站")
                     .attr("x1", connection.source.coordinates[0] * width - dx)
-                    .attr("y1", connection.source.coordinates[1] * height+margin_top - dy)
+                    .attr("y1", connection.source.coordinates[1] * height + margin_top - dy)
                     .attr("x2", connection.target.coordinates[0] * width - dx)
-                    .attr("y2", connection.target.coordinates[1] * height+margin_top - dy)
+                    .attr("y2", connection.target.coordinates[1] * height + margin_top - dy)
                     .style("stroke", lineColors[connection.line])
                     .style("stroke-width", 3)
-                    .on("mouseover", function() {
+                    .on("mouseover", function () {
+                        showConnectionInfo(connection);
+                    })
+                    .on("mouseout", hideConnectionInfo);
+
+                svg.append("line")
+                    .attr("class", "connection-main")
+                    .attr("id", connection.target.name + '站' + connection.source.name + "站")
+                    .attr("x1", connection.source.coordinates[0] * width)
+                    .attr("y1", connection.source.coordinates[1] * height + margin_top)
+                    .attr("x2", connection.target.coordinates[0] * width)
+                    .attr("y2", connection.target.coordinates[1] * height + margin_top)
+                    .style("stroke", lineColors[connection.line])
+                    .style("stroke-width", 3)
+                    .on("mouseover", function () {
                         showConnectionInfo(connection);
                     })
                     .on("mouseout", hideConnectionInfo);
@@ -149,12 +165,12 @@
                 .enter()
                 .append("g")
                 .attr("class", "station-point")
-                .attr("transform", d => `translate(${d.coordinates[0] * width},${d.coordinates[1] * height+margin_top})`);
+                .attr("transform", d => `translate(${d.coordinates[0] * width},${d.coordinates[1] * height + margin_top})`);
 
             // 站點圓圈
-            stationGroups.each(function(d) {
+            stationGroups.each(function (d) {
                 const group = d3.select(this);
-                
+
                 if (d.isTransfer) {
                     // 轉乘站：黑色圓圈加白色外圈
                     group.append("circle")
@@ -175,17 +191,17 @@
                 .attr("class", "station-label")
                 .attr("dx", 8)
                 .attr("dy", 3)
-                .attr('y' , -4)
-                .attr('x' , 2)
-                .text(function(d){
-                    if(d.name.length == 4){
-                        return d.name.substring(0,2)+"\n"+ d.name.substring(2,4);
+                .attr('y', -4)
+                .attr('x', 2)
+                .text(function (d) {
+                    if (d.name.length == 4) {
+                        return d.name.substring(0, 2) + "\n" + d.name.substring(2, 4);
                     }
                     return d.name;
                 });
 
             // 站點點擊事件
-            stationGroups.on("click", function(event, d) {
+            stationGroups.on("click", function (event, d) {
                 highlightStation(d, svg, width, height);
             });
         }
@@ -207,12 +223,12 @@
         function highlightStation(station, svg, width, height) {
             // 清除之前的高亮
             svg.selectAll(".highlight").remove();
-            
+
             // 創建高亮效果
             const highlight = svg.append("circle")
                 .attr("class", "highlight")
                 .attr("cx", station.coordinates[0] * width)
-                .attr("cy", (station.coordinates[1] * height)-30)
+                .attr("cy", (station.coordinates[1] * height) - 30)
                 .attr("r", station.isTransfer ? 12 : 10)
                 .style("fill", "none")
                 .style("stroke", station.isTransfer ? "#fff" : lineColors[station.lines[0]])
@@ -228,17 +244,51 @@
         }
 
         // 用時間控制線的粗細
-        async function initVisualization(date , station , type) {
+        async function updateVisualization(date, station, type) {
             let path = ""
-            if(type == "all"){
-                path = 
+            if (type == "all") {
+                path = `../data/${date.substring(0, 4) + date.substring(5, 7)}all.json`;
+                d3.selectAll(".connection-in")
+                    .style("display", "none");
+                d3.selectAll(".connection-out")
+                    .style("display", "none");
             }
-            const stations = await fetch('../data/mrt_stations.json').then(res => res.json());
-        
-        }
+            // "2024-11-01-00"
+            const data = await fetch(path).then(res => res.json());
+            // console.log(data[date]);
+            // console.log(typeof (data[date]))
+            let obj = data[date];
+            let max = Math.max(...Object.values(obj));
+            for (let key in obj) {
+                let width = 15 * obj[key] / max;
+                if (width < 1) width = 1;
+                console.log(`${key}: ${obj[key]} : ${width}`);
+                try {
+                    d3.select(`#${CSS.escape(key)}`)
+                        .transition()  // 開始過渡
+                        .duration(4000) // 持續時間 1 秒
+                        .style("stroke-width", `${width}px`);
+                }
+                catch (err) {
+                    console.log(err)
+                }
 
+            }
+        }
+        let clock = ['00', '01', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23'];
         // 初始化視覺化
         window.addEventListener('load', initVisualization);
+        document.getElementById("test").addEventListener("click", function () {
+            for (let i = 0; i < clock.length; i++) {
+                setTimeout(function () {
+                    updateVisualization(`2024-11-01-${clock[i]}`, -1, "all");
+                    console.log(i);
+                }, 5000);
+            }
+            
+        })
+
     </script>
 </body>
+
 </html>
