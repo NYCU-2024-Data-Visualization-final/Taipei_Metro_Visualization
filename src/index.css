@@ -15,6 +15,7 @@ body{
     font-size: 12px;
     pointer-events: none;
     font-family: Arial, sans-serif;
+    user-select: none;
 }
 
 .transfer-station {
@@ -64,4 +65,8 @@ body{
       width: 25vw;
       height: 20vh;
       padding: 1vw 1vh;
+}
+
+.label1{
+      margin-right: 15px;
 }
