@@ -4,10 +4,16 @@
 <head>
     <title>台北捷運路線圖</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-simple-slider/1.8.4/d3-simple-slider.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/d3-simple-slider/1.8.4/d3-simple-slider.min.css">
     <link rel="stylesheet" href="index.css">
 </head>
 
 <body>
+    <div class="control-group">
+        <label>時間：<span id="timeLabel"></span></label>
+        <input type="range" id="timeSlider" min="0" max="7991" value="0">
+    </div>
     <div id="visualization"></div>
     <div class="station-info" id="station-info"></div>
     <button id="test">132123</button>
@@ -20,6 +26,42 @@
             orange: "#F8B61C",
             brown: "#C48C31"
         };
+
+        function initTimeSlider() {
+            const slider = document.getElementById('timeSlider');
+            const timeLabel = document.getElementById('timeLabel');
+
+            // 天數
+            const daysInMonths = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30];
+            const totalHours = daysInMonths.reduce((sum, days) => sum + days * 24, 0) - 1;
+
+            slider.addEventListener('input', function () {
+                const normalizedValue = parseInt(this.value);
+                const hourIndex = Math.floor((normalizedValue / slider.max) * totalHours);
+
+                // 日期
+                let remainingHours = hourIndex;
+                let month = 0;
+
+                while (month < daysInMonths.length && remainingHours >= daysInMonths[month] * 24) {
+                    remainingHours -= daysInMonths[month] * 24;
+                    month++;
+                }
+
+                const day = Math.floor(remainingHours / 24) + 1;
+                const hour = remainingHours % 24;
+
+                const year = 2024;
+                const formattedTime = `${year}-${(month + 1).toString().padStart(2, '0')}-${day
+                    .toString()
+                    .padStart(2, '0')}-${hour.toString().padStart(2, '0')}`;
+                timeLabel.textContent = formattedTime;
+
+                console.log(formattedTime);
+            });
+
+            slider.dispatchEvent(new Event('input'));
+        }
 
         // 建立站點間的連接關係
         function createConnections(stations) {
@@ -278,6 +320,7 @@
         let clock = ['00', '01', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23'];
         // 初始化視覺化
         window.addEventListener('load', initVisualization);
+        window.addEventListener('load', initTimeSlider);
         document.getElementById("test").addEventListener("click", function () {
             for (let i = 0; i < clock.length; i++) {
                 setTimeout(function () {
