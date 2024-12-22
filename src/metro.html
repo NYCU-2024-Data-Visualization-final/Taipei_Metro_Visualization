@@ -5,7 +5,8 @@
     <title>台北捷運路線圖</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-simple-slider/1.8.4/d3-simple-slider.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/d3-simple-slider/1.8.4/d3-simple-slider.min.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/d3-simple-slider/1.8.4/d3-simple-slider.min.css">
     <link rel="stylesheet" href="index.css">
 </head>
 
@@ -140,12 +141,24 @@
         }
 
         async function initVisualization() {
-            const stations = await fetch('../data/mrt_stations.json').then(res => res.json());
+            const Xscale = d3.scaleLinear()
+                .domain([0.2042, 0.7569])  // 輸入範圍
+                .range([0.07, 0.95]);         // 輸出範圍
+            const Yscale = d3.scaleLinear()
+                .domain([0.09, 0.9704])  // 輸入範圍
+                .range([0.05, 0.95]);         // 輸出範圍
+            let stations = await fetch('../data/mrt_stations.json').then(res => res.json());
+            // 0 : 0.2042   0.7569
+            // 1 : 0.09     0.9704
+            for (let i = 0; i < stations.length; i++) {
+                stations[i]["coordinates"][0] = Xscale(stations[i]["coordinates"][0]);
+                stations[i]["coordinates"][0] = Yscale(stations[i]["coordinates"][0]);
+            }
             const connections = createConnections(stations);
 
-            const width = window.innerWidth;
-            const height = window.innerHeight;
-            const margin_top = -30;
+            const width = window.innerWidth * 1;
+            const height = window.innerHeight * 1;
+            const margin_top = 0;
             const svg = d3.select("#visualization")
                 .append("svg")
                 .attr("width", width)
@@ -163,7 +176,7 @@
 
                 svg.append("line")
                     .attr("class", "connection-in")
-                    .attr("id", connection.source.name + '站' + connection.target.name + "站" + "進站")
+                    .attr("id", connection.source.name + '站' + connection.target.name + "站")
                     .attr("x1", connection.source.coordinates[0] * width + dx)
                     .attr("y1", connection.source.coordinates[1] * height + margin_top + dy)
                     .attr("x2", connection.target.coordinates[0] * width + dx)
@@ -176,7 +189,7 @@
                     .on("mouseout", hideConnectionInfo);
                 svg.append("line")
                     .attr("class", "connection-out")
-                    .attr("id", connection.target.name + '站' + connection.source.name + "站" + "出站")
+                    .attr("id", connection.target.name + '站' + connection.source.name + "站")
                     .attr("x1", connection.source.coordinates[0] * width - dx)
                     .attr("y1", connection.source.coordinates[1] * height + margin_top - dy)
                     .attr("x2", connection.target.coordinates[0] * width - dx)
@@ -188,19 +201,19 @@
                     })
                     .on("mouseout", hideConnectionInfo);
 
-                svg.append("line")
-                    .attr("class", "connection-main")
-                    .attr("id", connection.target.name + '站' + connection.source.name + "站")
-                    .attr("x1", connection.source.coordinates[0] * width)
-                    .attr("y1", connection.source.coordinates[1] * height + margin_top)
-                    .attr("x2", connection.target.coordinates[0] * width)
-                    .attr("y2", connection.target.coordinates[1] * height + margin_top)
-                    .style("stroke", lineColors[connection.line])
-                    .style("stroke-width", 3)
-                    .on("mouseover", function () {
-                        showConnectionInfo(connection);
-                    })
-                    .on("mouseout", hideConnectionInfo);
+                // svg.append("line")
+                //     .attr("class", "connection-main")
+                //     .attr("id", connection.target.name + '站' + connection.source.name + "站")
+                //     .attr("x1", connection.source.coordinates[0] * width)
+                //     .attr("y1", connection.source.coordinates[1] * height + margin_top)
+                //     .attr("x2", connection.target.coordinates[0] * width)
+                //     .attr("y2", connection.target.coordinates[1] * height + margin_top)
+                //     .style("stroke", lineColors[connection.line])
+                //     .style("stroke-width", 3)
+                //     .on("mouseover", function () {
+                //         showConnectionInfo(connection);
+                //     })
+                //     .on("mouseout", hideConnectionInfo);
             });
 
             // 建立站點
@@ -238,9 +251,6 @@
                 .attr('y', -4)
                 .attr('x', 2)
                 .text(function (d) {
-                    if (d.name.length == 4) {
-                        return d.name.substring(0, 2) + "\n" + d.name.substring(2, 4);
-                    }
                     return d.name;
                 });
 
@@ -292,9 +302,11 @@
             let path = ""
             if (type == "all") {
                 path = `../data/${date.substring(0, 4) + date.substring(5, 7)}all.json`;
-                d3.selectAll(".connection-in")
-                    .style("display", "none");
-                d3.selectAll(".connection-out")
+                // d3.selectAll(".connection-in")
+                //     .style("display", "none");
+                // d3.selectAll(".connection-out")
+                //     .style("display", "none");
+                d3.selectAll(".connection-main")
                     .style("display", "none");
             }
             // "2024-11-01-00"
@@ -330,7 +342,7 @@
                     console.log(i);
                 }, 5000);
             }
-            
+
         })
 
     </script>
