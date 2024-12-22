@@ -1,0 +1,39 @@
+#visualization {
+    width: 99vw;
+    height: 99vh;
+    border: 2px black solid;
+}
+
+.station-point {
+    cursor: pointer;
+}
+
+.station-label {
+    font-size: 12px;
+    pointer-events: none;
+    font-family: Arial, sans-serif;
+}
+
+.transfer-station {
+    stroke: white;
+    stroke-width: 2;
+}
+
+.connection {
+    fill: none;
+    stroke-linecap: round;
+}
+
+.connection-hover {
+    stroke-width: 8;
+    opacity: 0;
+}
+
+.station-info {
+    position: fixed;
+    background: white;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    display: none;
+}

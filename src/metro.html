@@ -3,40 +3,7 @@
 <head>
     <title>台北捷運路線圖</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <style>
-        #visualization {
-            width: 100vw;
-            height: 100vh;
-        }
-        .station-point {
-            cursor: pointer;
-        }
-        .station-label {
-            font-size: 12px;
-            pointer-events: none;
-            font-family: Arial, sans-serif;
-        }
-        .transfer-station {
-            stroke: white;
-            stroke-width: 2;
-        }
-        .connection {
-            fill: none;
-            stroke-linecap: round;
-        }
-        .connection-hover {
-            stroke-width: 8;
-            opacity: 0;
-        }
-        .station-info {
-            position: fixed;
-            background: white;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            display: none;
-        }
-    </style>
+    <link rel="stylesheet" href="index.css">
 </head>
 <body>
     <div id="visualization"></div>
@@ -132,7 +99,7 @@
             
             const width = window.innerWidth;
             const height = window.innerHeight;
-            
+            const margin_top = -30;
             const svg = d3.select("#visualization")
                 .append("svg")
                 .attr("width", width)
@@ -144,9 +111,9 @@
                 svg.append("line")
                     .attr("class", "connection")
                     .attr("x1", connection.source.coordinates[0] * width)
-                    .attr("y1", connection.source.coordinates[1] * height)
+                    .attr("y1", connection.source.coordinates[1] * height+margin_top)
                     .attr("x2", connection.target.coordinates[0] * width)
-                    .attr("y2", connection.target.coordinates[1] * height)
+                    .attr("y2", connection.target.coordinates[1] * height+margin_top)
                     .style("stroke", lineColors[connection.line])
                     .style("stroke-width", 3);
 
@@ -154,9 +121,9 @@
                 svg.append("line")
                     .attr("class", "connection-hover")
                     .attr("x1", connection.source.coordinates[0] * width)
-                    .attr("y1", connection.source.coordinates[1] * height)
+                    .attr("y1", connection.source.coordinates[1] * height+margin_top)
                     .attr("x2", connection.target.coordinates[0] * width)
-                    .attr("y2", connection.target.coordinates[1] * height)
+                    .attr("y2", connection.target.coordinates[1] * height+margin_top)
                     .on("mouseover", function() {
                         showConnectionInfo(connection);
                     })
@@ -169,7 +136,7 @@
                 .enter()
                 .append("g")
                 .attr("class", "station-point")
-                .attr("transform", d => `translate(${d.coordinates[0] * width},${d.coordinates[1] * height})`);
+                .attr("transform", d => `translate(${d.coordinates[0] * width},${d.coordinates[1] * height+margin_top})`);
 
             // 站點圓圈
             stationGroups.each(function(d) {
@@ -195,7 +162,14 @@
                 .attr("class", "station-label")
                 .attr("dx", 8)
                 .attr("dy", 3)
-                .text(d => d.name);
+                .attr('y' , -4)
+                .attr('x' , 2)
+                .text(function(d){
+                    if(d.name.length == 4){
+                        return d.name.substring(0,2)+"\n"+ d.name.substring(2,4);
+                    }
+                    return d.name;
+                });
 
             // 站點點擊事件
             stationGroups.on("click", function(event, d) {
