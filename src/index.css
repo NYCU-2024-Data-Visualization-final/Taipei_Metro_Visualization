@@ -1,3 +1,6 @@
+body{
+      overflow: hidden;
+}
 #visualization {
     /* width: 90vw;
     height: 90vh; */
@@ -44,7 +47,21 @@
     margin: 0;
     padding: 0 10px;
 }
+.control-group span{
+      width: 100px;
+}
 
 #timeSlider {
     width: 100%;
+}
+
+.tool-box{
+      position: fixed;
+      right: 5vw;
+      top:3vh;
+      border: 2px black dashed;
+      border-radius: 30px;
+      width: 25vw;
+      height: 20vh;
+      padding: 1vw 1vh;
 }
