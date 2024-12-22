@@ -130,6 +130,10 @@
                 hourIndex = Math.max(hourIndex , 0);
                 console.log(`${clock[hourIndex]}時`);
                 timeLabel.textContent = `${clock[hourIndex]}時`;
+                if (start_end == "cur"){
+                    let cur_time = parseInt(document.getElementById('cur_timeSlider').value, 10);
+                    updateVisualization(cur_time, "", "all");
+                }
             })
 
         }
