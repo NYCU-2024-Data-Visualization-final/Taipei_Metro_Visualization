@@ -12,7 +12,7 @@
 <body>
     <div class="control-group">
         <label>時間：<span id="timeLabel"></span></label>
-        <input type="range" id="timeSlider" min="0" max="7991" value="0">
+        <input type="range" id="timeSlider" min="0" max="6698" value="0">
     </div>
     <div id="visualization"></div>
     <div class="station-info" id="station-info"></div>
@@ -33,28 +33,30 @@
 
             // 天數
             const daysInMonths = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30];
-            const totalHours = daysInMonths.reduce((sum, days) => sum + days * 24, 0) - 1;
+            const hoursPerDay = 20;
+            const totalHours = daysInMonths.reduce((sum, days) => sum + days * hoursPerDay, 0) - 1;
 
             slider.addEventListener('input', function () {
                 const normalizedValue = parseInt(this.value);
                 const hourIndex = Math.floor((normalizedValue / slider.max) * totalHours);
 
-                // 日期
                 let remainingHours = hourIndex;
                 let month = 0;
 
-                while (month < daysInMonths.length && remainingHours >= daysInMonths[month] * 24) {
-                    remainingHours -= daysInMonths[month] * 24;
+                while (month < daysInMonths.length && remainingHours >= daysInMonths[month] * hoursPerDay) {
+                    remainingHours -= daysInMonths[month] * hoursPerDay;
                     month++;
                 }
 
-                const day = Math.floor(remainingHours / 24) + 1;
-                const hour = remainingHours % 24;
+                const day = Math.floor(remainingHours / hoursPerDay) + 1;
+                const effectiveHour = remainingHours % hoursPerDay;
+
+                const actualHour = effectiveHour < 2 ? effectiveHour : effectiveHour + 4;
 
                 const year = 2024;
                 const formattedTime = `${year}-${(month + 1).toString().padStart(2, '0')}-${day
                     .toString()
-                    .padStart(2, '0')}-${hour.toString().padStart(2, '0')}`;
+                    .padStart(2, '0')}-${actualHour.toString().padStart(2, '0')}`;
                 timeLabel.textContent = formattedTime;
 
                 console.log(formattedTime);
