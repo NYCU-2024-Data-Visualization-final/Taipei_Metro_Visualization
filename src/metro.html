@@ -108,22 +108,35 @@
             // 建立連接線
             connections.forEach(connection => {
                 // 主要連接線
+                let my = connection.source.coordinates[0] - connection.target.coordinates[0];
+                let mx = -(connection.source.coordinates[1] - connection.target.coordinates[1]);
+                let r = Math.sqrt(my*my + mx*mx);
+                let dx = mx * 3/r;
+                let dy = my * 3/r;
+
+
                 svg.append("line")
                     .attr("class", "connection")
-                    .attr("x1", connection.source.coordinates[0] * width)
-                    .attr("y1", connection.source.coordinates[1] * height+margin_top)
-                    .attr("x2", connection.target.coordinates[0] * width)
-                    .attr("y2", connection.target.coordinates[1] * height+margin_top)
+                    .attr("id", connection.source.name+'站'+connection.target.name+"站")
+                    .attr("x1", connection.source.coordinates[0] * width + dx)
+                    .attr("y1", connection.source.coordinates[1] * height+margin_top + dy)
+                    .attr("x2", connection.target.coordinates[0] * width + dx)
+                    .attr("y2", connection.target.coordinates[1] * height+margin_top+dy)
                     .style("stroke", lineColors[connection.line])
-                    .style("stroke-width", 3);
-
-                // 互動用的寬連接線
+                    .style("stroke-width", 3)
+                    .on("mouseover", function() {
+                        showConnectionInfo(connection);
+                    })
+                    .on("mouseout", hideConnectionInfo);
                 svg.append("line")
-                    .attr("class", "connection-hover")
-                    .attr("x1", connection.source.coordinates[0] * width)
-                    .attr("y1", connection.source.coordinates[1] * height+margin_top)
-                    .attr("x2", connection.target.coordinates[0] * width)
-                    .attr("y2", connection.target.coordinates[1] * height+margin_top)
+                    .attr("class", "connection")
+                    .attr("id", connection.target.name+'站'+connection.source.name+"站")
+                    .attr("x1", connection.source.coordinates[0] * width - dx)
+                    .attr("y1", connection.source.coordinates[1] * height+margin_top - dy)
+                    .attr("x2", connection.target.coordinates[0] * width - dx)
+                    .attr("y2", connection.target.coordinates[1] * height+margin_top - dy)
+                    .style("stroke", lineColors[connection.line])
+                    .style("stroke-width", 3)
                     .on("mouseover", function() {
                         showConnectionInfo(connection);
                     })
@@ -145,14 +158,14 @@
                 if (d.isTransfer) {
                     // 轉乘站：黑色圓圈加白色外圈
                     group.append("circle")
-                        .attr("r", 5)
+                        .attr("r", 7)
                         .style("fill", "white")
                         .style("stroke", "black")
                         .style("stroke-width", 2);
                 } else {
                     // 一般站點：單一圓圈，使用路線顏色
                     group.append("circle")
-                        .attr("r", 5)
+                        .attr("r", 7)
                         .style("fill", lineColors[d.lines[0]]);
                 }
             });
@@ -199,7 +212,7 @@
             const highlight = svg.append("circle")
                 .attr("class", "highlight")
                 .attr("cx", station.coordinates[0] * width)
-                .attr("cy", station.coordinates[1] * height)
+                .attr("cy", (station.coordinates[1] * height)-30)
                 .attr("r", station.isTransfer ? 12 : 10)
                 .style("fill", "none")
                 .style("stroke", station.isTransfer ? "#fff" : lineColors[station.lines[0]])
@@ -212,6 +225,16 @@
                 .duration(300)
                 .style("opacity", 0)
                 .remove();
+        }
+
+        // 用時間控制線的粗細
+        async function initVisualization(date , station , type) {
+            let path = ""
+            if(type == "all"){
+                path = 
+            }
+            const stations = await fetch('../data/mrt_stations.json').then(res => res.json());
+        
         }
 
         // 初始化視覺化
