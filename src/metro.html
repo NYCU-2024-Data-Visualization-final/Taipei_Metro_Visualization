@@ -135,8 +135,9 @@
                 hourIndex = Math.max(hourIndex, 0);
                 timeLabel.textContent = `${clock[hourIndex]}時`;
                 if (start_end == "cur") {
-                    let cur_time = parseInt(document.getElementById('cur_timeSlider').value, 10);
-                    updateVisualization(cur_time, "", "all");
+                    let cur_time = parseInt(document.getElementById('cur_timeSlider').value, 10)+ parseInt(document.getElementById('cur_timeSlider2').value, 10)/698;
+                    console.log(cur_time);
+                    updateVisualization(trans_slider_to_date(cur_time), "", "all");
                 }
             })
 
@@ -331,6 +332,12 @@
                         return 1;
                     if (d.name == "大安森林公園")
                         return 18;
+                    if (d.name == "古亭")
+                        return 0;
+                    if ((d.lines.includes("orange") && d.order[0] < 5))
+                        return 5;
+                    if ((d.lines.includes("green") && d.order[0] >= 13))
+                        return 5;
                     return -10;
                 })
                 .attr('x', function (d) {
@@ -338,6 +345,8 @@
                         return 2;
                     if (d.name == "大安森林公園")
                         return -20;
+                    if (d.name == "古亭")
+                        return 8;
                     return 6;
                 })
                 .text(function (d) {
