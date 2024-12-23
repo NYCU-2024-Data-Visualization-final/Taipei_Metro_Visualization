@@ -303,6 +303,7 @@
                 if (d.isTransfer) {
                     // 轉乘站：黑色圓圈加白色外圈
                     group.append("circle")
+                        .attr("id" , d.name+"站")
                         .attr("r", 10)
                         .style("fill", "white")
                         .style("stroke", "black")
@@ -310,6 +311,7 @@
                 } else {
                     // 一般站點：單一圓圈，使用路線顏色
                     group.append("circle")
+                        .attr("id" , d.name+"站")
                         .attr("r", 10)
                         .style("fill", lineColors[d.lines[0]])
                         .style("stroke", "black")
@@ -443,6 +445,9 @@
             // "2024-11-01-00"
             let obj = data[date];
             let max = Math.max(Math.max(...Object.values(obj)), 20);
+            let dots_r = Object();
+            
+            
             for (let key in obj) {
                 let width = Math.max(10 * obj[key] / max, 0.5);
                 // console.log(`${key}: ${obj[key]} : ${width}`);
@@ -451,7 +456,26 @@
                     // .duration(4000) // 持續時間 1 秒
                     .style("stroke-width", `${width}px`);
 
-
+                let text = key;
+                let index = text.indexOf("站");
+                let part1 = text.slice(0, index+1);
+                let part2 = text.slice(index + 1);
+                console.log(obj[key] / max);
+                if(part1 in dots_r){
+                    dots_r[part1] += obj[key] / max;
+                }
+                else dots_r[part1] = obj[key] / max;
+                if(part2 in dots_r){
+                    dots_r[part2] += obj[key] / max;
+                }
+                else dots_r[part2] = obj[key] / max;
+                console.log(dots_r);
+            }
+            for(let x in dots_r){
+                console.log(dots_r[x]);
+                console.log(Math.max(dots_r[x]*15 , 5));
+                d3.select(`#${x.replace("/" , "")}`)
+                   .attr("r", Math.max(dots_r[x]*8 , 5));
             }
         }
         // 初始化視覺化
