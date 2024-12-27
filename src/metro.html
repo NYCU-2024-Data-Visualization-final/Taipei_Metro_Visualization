@@ -55,6 +55,7 @@
         };
 
         let all_2024 = {};
+        let clock = ['0', '1', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23'];
 
         function trans_slider_to_date(val) {
             const daysInMonths = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30];
@@ -91,56 +92,53 @@
             const hoursPerDay = 20;
             const totalHours = daysInMonths.reduce((sum, days) => sum + days * hoursPerDay, 0) - 1;
 
-            slider.addEventListener('input', function () {
-                const normalizedValue = parseInt(this.value);
-                const hourIndex = Math.floor((normalizedValue / slider.max) * totalHours);
+            if (start_end == "cur") {
+                slider.addEventListener('change', function () {
+                    let cur_time = trans_slider_to_date(parseInt(this.value)).substring(0, 10);
+                    timeLabel.textContent = cur_time;
+                    let hourIndex = Math.floor(parseInt(document.getElementById("cur_timeSlider2").value) / slider.max * clock.length) - 1;
+                    hourIndex = Math.max(hourIndex, 0);
+                    cur_time += "-" + clock[hourIndex].padStart(2, '0');
 
-                let remainingHours = hourIndex;
-                let month = 0;
+                    updateVisualization(cur_time, "", "all");
+                });
+            }
+            else {
+                slider.addEventListener('change', function () {
+                    let cur_time = trans_slider_to_date(parseInt(this.value)).substring(0, 10);
+                    timeLabel.textContent = cur_time;
 
-                while (month < daysInMonths.length && remainingHours >= daysInMonths[month] * hoursPerDay) {
-                    remainingHours -= daysInMonths[month] * hoursPerDay;
-                    month++;
-                }
+                });
+            }
 
-                const day = Math.floor(remainingHours / hoursPerDay) + 1;
-                const effectiveHour = remainingHours % hoursPerDay;
 
-                const actualHour = effectiveHour < 2 ? effectiveHour : effectiveHour + 4;
-
-                const year = 2024;
-                const formattedTime = `${year}-${(month + 1).toString().padStart(2, '0')}-${day
-                    .toString()
-                    .padStart(2, '0')}-${actualHour.toString().padStart(2, '0')}`;
-                timeLabel.textContent = `${year}-${(month + 1).toString().padStart(2, '0')}-${day
-                    .toString()
-                    .padStart(2, '0')}`;
-                //  ${actualHour.toString()}時`;
-
-                console.log(formattedTime);
-                if (start_end == "cur")
-                    updateVisualization(formattedTime, "", "all");
-            });
-
-            slider.dispatchEvent(new Event('input'));
+            slider.dispatchEvent(new Event('change'));
         }
         function initTimeSlider2(start_end) {
             const slider = document.getElementById(start_end + '_timeSlider2');
             const timeLabel = document.getElementById(start_end + '_timeLabel2');
-            let clock = ['0', '1', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23'];
 
-            slider.addEventListener("input", function () {
-                let normalizedValue = parseInt(this.value);
-                let hourIndex = Math.floor(normalizedValue / slider.max * clock.length) - 1;
-                hourIndex = Math.max(hourIndex, 0);
-                timeLabel.textContent = `${clock[hourIndex]}時`;
-                if (start_end == "cur") {
-                    let cur_time = parseInt(document.getElementById('cur_timeSlider').value, 10)+ parseInt(document.getElementById('cur_timeSlider2').value, 10)/698;
+            if (start_end == "cur") {
+                slider.addEventListener("change", function () {
+                    let normalizedValue = parseInt(this.value);
+                    let hourIndex = Math.floor(normalizedValue / slider.max * clock.length) - 1;
+                    hourIndex = Math.max(hourIndex, 0);
+                    timeLabel.textContent = `${clock[hourIndex]}時`;
+
+                    let cur_time = trans_slider_to_date(parseInt(document.getElementById('cur_timeSlider').value, 10)).substring(0, 11) + clock[hourIndex].padStart(2, '0');
                     console.log(cur_time);
-                    updateVisualization(trans_slider_to_date(cur_time), "", "all");
-                }
-            })
-
+                    updateVisualization(cur_time, "", "all");
+                })
+            }
+            else {
+                slider.addEventListener("change", function () {
+                    let normalizedValue = parseInt(this.value);
+                    let hourIndex = Math.floor(normalizedValue / slider.max * clock.length) - 1;
+                    hourIndex = Math.max(hourIndex, 0);
+                    timeLabel.textContent = `${clock[hourIndex]}時`;
+                })
+            }
+            slider.dispatchEvent(new Event('change'));
         }
 
         // 建立站點間的連接關係
@@ -303,7 +301,11 @@
                 if (d.isTransfer) {
                     // 轉乘站：黑色圓圈加白色外圈
                     group.append("circle")
-                        .attr("id" , d.name+"站")
+                        .attr("id", function (d) {
+                            // console.log(d.name.substring(3));
+                            if (d.name.substring(3) != "站") return d.name + "站";
+                            return d.name;
+                        })
                         .attr("r", 10)
                         .style("fill", "white")
                         .style("stroke", "black")
@@ -311,7 +313,7 @@
                 } else {
                     // 一般站點：單一圓圈，使用路線顏色
                     group.append("circle")
-                        .attr("id" , d.name+"站")
+                        .attr("id", d.name + "站")
                         .attr("r", 10)
                         .style("fill", lineColors[d.lines[0]])
                         .style("stroke", "black")
@@ -358,11 +360,22 @@
             // 站點點擊事件
             stationGroups.on("click", function (event, d) {
                 highlightStation(d, svg, width, height);
-                updateVisualization("2024-11-02-15", d.name, "in");
+                let hourIndex = Math.floor(parseInt(document.getElementById("cur_timeSlider2").value) / 6698 * clock.length) - 1;
+                hourIndex = Math.max(hourIndex, 0);
+                console.log(hourIndex);
+                let cur_time = trans_slider_to_date(parseInt(document.getElementById('cur_timeSlider').value, 10)).substring(0, 11) + clock[hourIndex].padStart(2, '0');
+                console.log(cur_time);
+                updateVisualization(cur_time, d.name, "in");
+                // updateVisualization("2024-11-02-15", d.name, "in");
             });
             stationGroups.on("dblclick", function (event, d) {
                 highlightStation(d, svg, width, height);
-                updateVisualization("2024-11-02-15", d.name, "out");
+                let hourIndex = Math.floor(parseInt(document.getElementById("cur_timeSlider2").value) / 6698 * clock.length) - 1;
+                hourIndex = Math.max(hourIndex, 0);
+                let cur_time = trans_slider_to_date(parseInt(document.getElementById('cur_timeSlider').value, 10)).substring(0, 11) + clock[hourIndex].padStart(2, '0');
+                console.log(cur_time);
+                updateVisualization(cur_time, d.name, "out");
+                // updateVisualization("2024-11-02-15", d.name, "out");
             });
         }
 
@@ -412,6 +425,9 @@
         async function updateVisualization(date, station, type) {
             let path = ""
             let data;
+            if (station == "台北101/世貿") {
+                station = "台北101世貿"
+            }
             if (type == "all") {
                 data = all_2024;
                 d3.selectAll(`.connection-out`)
@@ -420,11 +436,6 @@
                     .style("display", "block");
             }
             else if (type == "in") {
-                if (station == "台北101/世貿") {
-                    station = "台北101世貿"
-                }
-                // if (station.slice(-1) != '站')
-                //     station += '站'
 
                 path = `../data/${date.substring(0, 4) + date.substring(5, 7) + station}進站.json`;
                 console.log(path);
@@ -443,11 +454,12 @@
                     .style("display", "block");
             }
             // "2024-11-01-00"
+            console.log(date in data);
             let obj = data[date];
             let max = Math.max(Math.max(...Object.values(obj)), 20);
             let dots_r = Object();
-            
-            
+
+
             for (let key in obj) {
                 let width = Math.max(10 * obj[key] / max, 0.5);
                 // console.log(`${key}: ${obj[key]} : ${width}`);
@@ -458,24 +470,29 @@
 
                 let text = key;
                 let index = text.indexOf("站");
-                let part1 = text.slice(0, index+1);
+                let part1 = text.slice(0, index + 1);
                 let part2 = text.slice(index + 1);
-                console.log(obj[key] / max);
-                if(part1 in dots_r){
+                // console.log(obj[key] / max);
+                if (part1 in dots_r) {
                     dots_r[part1] += obj[key] / max;
                 }
                 else dots_r[part1] = obj[key] / max;
-                if(part2 in dots_r){
+                if (part2 in dots_r) {
                     dots_r[part2] += obj[key] / max;
                 }
                 else dots_r[part2] = obj[key] / max;
-                console.log(dots_r);
+                // console.log(dots_r);
             }
-            for(let x in dots_r){
-                console.log(dots_r[x]);
-                console.log(Math.max(dots_r[x]*15 , 5));
-                d3.select(`#${x.replace("/" , "")}`)
-                   .attr("r", Math.max(dots_r[x]*8 , 5));
+            console.log("cur station: ", station, " ", dots_r[station + "站"]);
+            for (let x in dots_r) {
+                // console.log(dots_r[x]);
+                // console.log(Math.max(dots_r[x]*8 , 5));
+                if (dots_r[x] > dots_r[station + "站"]) {
+                    console.log("something wrong with", x, " ", dots_r[x]);
+                    dots_r[x] = dots_r[station + "站"];
+                }
+                d3.select(`#${x.replace("/", "")}`)
+                    .attr("r", Math.max(dots_r[x] * 8, 5));
             }
         }
         // 初始化視覺化
@@ -490,33 +507,36 @@
         });
         let timer;
         document.getElementById("ani_start").addEventListener("click", function () {
-            let start_time = parseInt(document.getElementById('start_timeSlider').value, 10);
-            let end_time = parseInt(document.getElementById('end_timeSlider').value, 10);
-            console.log(trans_slider_to_date(start_time), trans_slider_to_date(end_time));
-
-
             if (this.textContent == "開始播映") {
                 this.textContent = "中止播映";
-                timer = setInterval(() => {
-                    console.log(start_time, end_time);
-                    console.log(trans_slider_to_date(start_time), trans_slider_to_date(end_time));
-                    document.getElementById("cur_timeLabel").textContent = trans_slider_to_date(start_time).substring(0, 10);
-                    document.getElementById("cur_timeLabel2").textContent = trans_slider_to_date(start_time).substring(11, 13) + "時";
-                    document.getElementById("cur_timeSlider").value = start_time;
-                    let clock = ['00', '01', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23'];
-                    for (let x = 0; x < clock.length; x++) {
-                        if (clock[x] == trans_slider_to_date(start_time).substring(11, 13)) {
-                            document.getElementById("cur_timeSlider2").value = x * 6698 / clock.length;
-                        }
-                    }
+                if (document.getElementById("cur_timeSlider").value < document.getElementById("start_timeSlider").value ||
+                    document.getElementById("cur_timeSlider").value > document.getElementById("end_timeSlider").value) {
 
-                    updateVisualization(trans_slider_to_date(start_time), "", "all");
+                    document.getElementById("cur_timeSlider").value = document.getElementById("start_timeSlider").value;
+                    document.getElementById("cur_timeSlider2").value = document.getElementById("start_timeSlider2").value;
+                }
+
+                timer = setInterval(() => {
+                    if (parseInt(document.getElementById("cur_timeSlider2").value) == 6698) {
+                        document.getElementById("cur_timeSlider").value = parseInt(document.getElementById("cur_timeSlider").value) + 20;
+                        document.getElementById("cur_timeSlider2").value = 0;
+                    }
+                    else if (parseInt(document.getElementById("cur_timeSlider2").value) + 300 > 6698) {
+                        document.getElementById("cur_timeSlider2").value = 6698;
+                    }
+                    else {
+                        document.getElementById("cur_timeSlider2").value = parseInt(document.getElementById("cur_timeSlider2").value) + 300;
+                    }
+                    console.log("clock: ", document.getElementById("cur_timeSlider2").value);
+                    document.getElementById("cur_timeSlider").dispatchEvent(new Event('change'));
+                    document.getElementById("cur_timeSlider2").dispatchEvent(new Event('change'));
+
                     // 判斷是否到達結束日期
-                    if (trans_slider_to_date(start_time) == trans_slider_to_date(end_time)) {
+                    if (document.getElementById("cur_timeSlider").value == document.getElementById("end_timeSlider").value
+                        && document.getElementById("cur_timeSlider2").value == document.getElementById("end_timeSlider2").value
+                    ) {
                         clearInterval(timer); // 停止計時器
                         console.log("finish");
-                    } else {
-                        start_time += 1;
                     }
                 }, 500);
             }
