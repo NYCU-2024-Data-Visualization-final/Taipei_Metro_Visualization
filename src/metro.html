@@ -222,14 +222,13 @@
             const Yscale = d3.scaleLinear()
                 .domain([0.09, 0.9704])  // 輸入範圍
                 .range([0.05, 0.95]);         // 輸出範圍
-            let stations = await fetch('../data/mrt_stations.json').then(res => res.json());
-            for (let i = 1; i < 10; i++) {
-                let data = await fetch(`../data/2024${i.toString().padStart(2, '0')}all.json`).then(res => res.json());
+            let stations = await fetch('https://raw.githubusercontent.com/NYCU-2024-Data-Visualization-final/Taipei_Metro_Visualization/refs/heads/main/data/mrt_stations.json').then(res => res.json());
+            for (let i = 1; i < 12; i++) {
+                let data = await fetch(`https://raw.githubusercontent.com/NYCU-2024-Data-Visualization-final/Taipei_Metro_Visualization/refs/heads/main/data/2024${i.toString().padStart(2, '0')}all.json`).then(res => res.json());
                 for (let key in data) {
                     all_2024[key] = data[key];
                 }
-                // Object.assign(all_2024 , data);
-                console.log(all_2024);
+                console.log(`${i}th month done`);
             }
             // 0 : 0.2042   0.7569
             // 1 : 0.09     0.9704
@@ -436,8 +435,9 @@
                     .style("display", "block");
             }
             else if (type == "in") {
+                path = `https://raw.githubusercontent.com/NYCU-2024-Data-Visualization-final/Taipei_Metro_Visualization/refs/heads/main/data/${date.substring(0, 4) + date.substring(5, 7) + station}進站.json`;
 
-                path = `../data/${date.substring(0, 4) + date.substring(5, 7) + station}進站.json`;
+                // path = `../data/${date.substring(0, 4) + date.substring(5, 7) + station}進站.json`;
                 console.log(path);
                 data = await fetch(path).then(res => res.json());
                 d3.selectAll(`.connection-out`)
@@ -446,7 +446,9 @@
                     .style("display", "block");
             }
             else if (type == "out") {
-                path = `../data/${date.substring(0, 4) + date.substring(5, 7) + station}出站.json`;
+                path = `https://raw.githubusercontent.com/NYCU-2024-Data-Visualization-final/Taipei_Metro_Visualization/refs/heads/main/data/${date.substring(0, 4) + date.substring(5, 7) + station}出站.json`;
+
+                // path = `../data/${date.substring(0, 4) + date.substring(5, 7) + station}出站.json`;
                 data = await fetch(path).then(res => res.json());
                 d3.selectAll(`.connection-in`)
                     .style("display", "none");
